@@ -1,0 +1,34 @@
+###
+POST http://localhost:8080/customers
+
+{
+    "name": "alice",
+    "age": 19
+}
+
+###
+PUT http://localhost:8080/customers/9
+
+{
+    "id": 9,
+    "name": "bobby",
+    "age": 112
+}
+
+###
+PUT http://localhost:8080/customers/3
+
+{
+    "id": 3,
+    "name": "foobar",
+    "age": 99
+}
+
+###
+DELETE http://localhost:8080/customers/9
+
+
+####
+GET http://localhost:8080/customers/9
+
+####

@@ -32,6 +32,21 @@ func TestCreateCustomer(t *testing.T) {
 	assert.Equal(t, 25, response.Age)
 }
 
+func TestUpdate404Customer(t *testing.T) {
+	router := setupRouter()
+
+	// Update 404 the customer
+	w := httptest.NewRecorder()
+	updatePayload := []byte(`{"id": 999999, "name":"Updated User","age":30}`)
+	NotFoundURL := "/customers/999999"
+	updateReq, _ := http.NewRequest("PUT", NotFoundURL, bytes.NewBuffer(updatePayload))
+	updateReq.Header.Set("Content-Type", "application/json")
+
+	router.ServeHTTP(w, updateReq)
+
+	assert.Equal(t, http.StatusNotFound, w.Code)
+}
+
 func TestUpdateCustomer(t *testing.T) {
 	router := setupRouter()
 

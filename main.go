@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	"net/http"
+	"strconv"
 
 	"github.com/gin-gonic/gin"
 	"github.com/jinzhu/gorm"
@@ -63,15 +64,28 @@ func createCustomer(c *gin.Context) {
 }
 
 func updateCustomer(c *gin.Context) {
-	id := c.Params.ByName("id")
-	var customer Customer
-
-	if err := db.Where("id = ?", id).First(&customer).Error; err != nil {
-		c.AbortWithStatus(404)
+	ID, err := strconv.Atoi(c.Params.ByName("id"))
+	if err != nil {
+		c.AbortWithStatus(401)
 		fmt.Println(err)
+		return
+	}
+	var body Customer
+	c.BindJSON(&body)
+	if body.ID != 0 && ID != int(body.ID) {
+		// if body contain ID, then check if both values match
+		c.JSON(http.StatusBadRequest, gin.H{"message": "ID not matched"})
+		return
 	}
 
-	c.BindJSON(&customer)
+	var customer Customer
+	if err := db.Where("id = ?", ID).First(&customer).Error; err != nil {
+		c.AbortWithStatus(404)
+		fmt.Println(err)
+		return
+	}
+	customer.Name = body.Name
+	customer.Age = body.Age
 	db.Save(&customer)
 	c.JSON(http.StatusOK, customer)
 }

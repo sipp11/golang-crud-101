@@ -171,6 +171,19 @@ func TestGetCustomer(t *testing.T) {
 	assert.Equal(t, http.StatusNotFound, wNA.Code)
 }
 
+func TestDataSeeder(t *testing.T) {
+	setupRouter()
+
+	var customer Customer
+	var initialCount int
+	var postCount int
+	db.Model(&customer).Count(&initialCount)
+	createInitialData()
+	db.Model(&customer).Count(&postCount)
+
+	assert.Equal(t, 2, postCount-initialCount)
+}
+
 func setupRouter() *gin.Engine {
 	// Connect to SQLite database
 	db, err = gorm.Open("sqlite3", "test.db")

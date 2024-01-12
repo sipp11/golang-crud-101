@@ -24,12 +24,26 @@ func main() {
 	// Connect to SQLite database
 	db, _ = gorm.Open("sqlite3", "test.db")
 	defer db.Close()
+
+	// Migrate the schema
+	db.AutoMigrate(&Customer{})
+
+	// Create some initial customer d
+	createInitialData()
+
 	router := gin.Default()
 	router.POST("/customers", createCustomer)
 	router.PUT("/customers/:id", updateCustomer)
 	router.DELETE("/customers/:id", deleteCustomer)
 	router.GET("/customers/:id", getCustomerByID)
 	router.Run(":8080")
+}
+
+func createInitialData() {
+	customer1 := Customer{Name: "John Doe", Age: 21}
+	customer2 := Customer{Name: "Jane Doe", Age: 20}
+	db.Create(&customer1)
+	db.Create(&customer2)
 }
 
 func createCustomer(c *gin.Context) {
@@ -52,6 +66,7 @@ func updateCustomer(c *gin.Context) {
 	if body.ID != 0 && ID != int(body.ID) {
 		// if body contain ID, then check if both values match
 		c.JSON(http.StatusBadRequest, gin.H{"message": "ID not matched"})
+		fmt.Printf("paramID: %d / bodyID: %d\n", ID, body.ID)
 		return
 	}
 
@@ -74,10 +89,11 @@ func deleteCustomer(c *gin.Context) {
 	if err := db.Where("id = ?", id).First(&customer).Error; err != nil {
 		c.AbortWithStatus(404)
 		fmt.Println(err)
-	} else {
-		db.Delete(&customer)
-		c.JSON(http.StatusOK, gin.H{"id #" + id: "deleted"})
+		return
 	}
+
+	db.Delete(&customer)
+	c.JSON(http.StatusOK, gin.H{"id #" + id: "deleted"})
 }
 
 func getCustomerByID(c *gin.Context) {
@@ -87,7 +103,7 @@ func getCustomerByID(c *gin.Context) {
 	if err := db.Where("id = ?", id).First(&customer).Error; err != nil {
 		c.AbortWithStatus(404)
 		fmt.Println(err)
-	} else {
-		c.JSON(http.StatusOK, customer)
+		return
 	}
+	c.JSON(http.StatusOK, customer)
 }

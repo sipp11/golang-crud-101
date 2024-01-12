@@ -32,7 +32,7 @@ func TestCreateCustomer(t *testing.T) {
 	assert.Equal(t, 25, response.Age)
 }
 
-func TestUpdate404Customer(t *testing.T) {
+func TestBadUpdateCustomer(t *testing.T) {
 	router := setupRouter()
 
 	// Update 404 the customer
@@ -41,10 +41,30 @@ func TestUpdate404Customer(t *testing.T) {
 	NotFoundURL := "/customers/999999"
 	updateReq, _ := http.NewRequest("PUT", NotFoundURL, bytes.NewBuffer(updatePayload))
 	updateReq.Header.Set("Content-Type", "application/json")
+	router.ServeHTTP(w, updateReq)
+	assert.Equal(t, http.StatusNotFound, w.Code)
 
+	// Update 404 the customer
+	w = httptest.NewRecorder()
+	updatePayload = []byte(`{"id": 8888, "name":"Updated User","age":30}`)
+	NotFoundURL = "/customers/1"
+	updateReq, _ = http.NewRequest("PUT", NotFoundURL, bytes.NewBuffer(updatePayload))
+	updateReq.Header.Set("Content-Type", "application/json")
+	router.ServeHTTP(w, updateReq)
+	assert.Equal(t, http.StatusBadRequest, w.Code)
+}
+
+func TestErrorHandlingCase(t *testing.T) {
+	router := setupRouter()
+	// Update 404 the customer
+	w := httptest.NewRecorder()
+	updatePayload := []byte(`{"id": 999999, "name":"Updated User","age":30}`)
+	NotFoundURL := "/customers/badId"
+	updateReq, _ := http.NewRequest("PUT", NotFoundURL, bytes.NewBuffer(updatePayload))
+	updateReq.Header.Set("Content-Type", "application/json")
 	router.ServeHTTP(w, updateReq)
 
-	assert.Equal(t, http.StatusNotFound, w.Code)
+	assert.Equal(t, http.StatusBadRequest, w.Code)
 }
 
 func TestUpdateCustomer(t *testing.T) {
@@ -102,6 +122,17 @@ func TestDeleteCustomer(t *testing.T) {
 	getOKReq.Header.Set("Content-Type", "application/json")
 	router.ServeHTTP(w, getOKReq)
 	assert.Equal(t, http.StatusOK, w.Code)
+}
+
+func TestBadDeleteCustomer(t *testing.T) {
+	router := setupRouter()
+	// Delete it
+	w := httptest.NewRecorder()
+	URL := "/customers/9999999"
+	getOKReq, _ := http.NewRequest("DELETE", URL, nil)
+	getOKReq.Header.Set("Content-Type", "application/json")
+	router.ServeHTTP(w, getOKReq)
+	assert.Equal(t, http.StatusNotFound, w.Code)
 }
 
 func TestGetCustomer(t *testing.T) {

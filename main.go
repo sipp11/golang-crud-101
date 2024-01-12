@@ -22,37 +22,14 @@ var err error
 
 func main() {
 	// Connect to SQLite database
-	db, err = gorm.Open("sqlite3", "test.db")
-	if err != nil {
-		fmt.Println(err)
-	}
+	db, _ = gorm.Open("sqlite3", "test.db")
 	defer db.Close()
-
-	// Migrate the schema
-	db.AutoMigrate(&Customer{})
-
-	// Create some initial customer data
-	createInitialData()
-
-	// Initialize Gin router
 	router := gin.Default()
-
-	// Define REST API routes
 	router.POST("/customers", createCustomer)
 	router.PUT("/customers/:id", updateCustomer)
 	router.DELETE("/customers/:id", deleteCustomer)
 	router.GET("/customers/:id", getCustomerByID)
-
-	// Run the server
 	router.Run(":8080")
-}
-
-func createInitialData() {
-	customer1 := Customer{Name: "John Doe", Age: 21}
-	customer2 := Customer{Name: "Jane Doe", Age: 20}
-
-	db.Create(&customer1)
-	db.Create(&customer2)
 }
 
 func createCustomer(c *gin.Context) {
@@ -66,7 +43,7 @@ func createCustomer(c *gin.Context) {
 func updateCustomer(c *gin.Context) {
 	ID, err := strconv.Atoi(c.Params.ByName("id"))
 	if err != nil {
-		c.AbortWithStatus(401)
+		c.AbortWithStatus(400)
 		fmt.Println(err)
 		return
 	}
